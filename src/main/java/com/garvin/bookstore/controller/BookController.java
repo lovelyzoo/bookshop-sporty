@@ -1,9 +1,7 @@
 package com.garvin.bookstore.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.garvin.bookstore.model.BookDetailsModel;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("book")
@@ -15,7 +13,8 @@ public class BookController {
     }
 
     @PostMapping
-    public String createBook() {
-        return "createBook was called\n";
+    public BookDetailsModel createBook(@RequestBody BookDetailsModel bookDetails) {
+
+        return bookDetails;
     }
 }
