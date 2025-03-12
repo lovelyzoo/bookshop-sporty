@@ -1,0 +1,1 @@
+insert into tBooks (book_id, title, author, isbn, base_price) values (1, 'The Iliad', 'Emily Wilson', 9, 20.00);

@@ -13,6 +13,15 @@ public class BookService {
     @Autowired
     BookRepository bookRepository;
 
+    public BookDetailsModel getBook(long isbn) {
+        BookEntity bookEntity = bookRepository.findByIsbn(isbn);
+
+        BookDetailsModel returnValue = new BookDetailsModel();
+        BeanUtils.copyProperties(bookEntity, returnValue);
+
+        return returnValue;
+    }
+
     public BookDetailsModel createBook(BookDetailsModel bookDetails) {
         BookEntity bookEntity = new BookEntity();
         BeanUtils.copyProperties(bookDetails, bookEntity);

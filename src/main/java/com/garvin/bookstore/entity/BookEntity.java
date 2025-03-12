@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Entity(name = "tBooks")
 public class BookEntity implements Serializable {
@@ -18,15 +19,15 @@ public class BookEntity implements Serializable {
     @GeneratedValue
     private long book_id;
 
-    @Column(nullable = false)
     private String title;
-
-    @Column(nullable = false)
     private String author;
 
     // TODO: guarantee uniqueness
     @Column(nullable = false)
     private long isbn;
+
+    @Column(nullable = false)
+    private BigDecimal base_price;
 
     public long getBook_id() {
         return book_id;
@@ -58,5 +59,13 @@ public class BookEntity implements Serializable {
 
     public void setIsbn(long isbn) {
         this.isbn = isbn;
+    }
+
+    public BigDecimal getBase_price() {
+        return base_price;
+    }
+
+    public void setBase_price(BigDecimal base_price) {
+        this.base_price = base_price;
     }
 }

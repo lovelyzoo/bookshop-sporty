@@ -12,14 +12,13 @@ public class BookController {
     @Autowired
     BookService bookService;
 
-    @GetMapping
-    public String getBook() {
-        return "getBook was called\n";
+    @GetMapping("/{isbn}")
+    public BookDetailsModel getBook(@PathVariable long isbn) {
+        return bookService.getBook(isbn);
     }
 
     @PostMapping
     public BookDetailsModel createBook(@RequestBody BookDetailsModel bookDetails) {
-
         return bookService.createBook(bookDetails);
     }
 }
