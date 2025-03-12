@@ -1,22 +1,19 @@
 package com.garvin.bookstore.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-@Entity(name = "tBooks")
+@Entity(name = "books")
 public class BookEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 933999866115777188L;
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long book_id;
 
     private String title;
