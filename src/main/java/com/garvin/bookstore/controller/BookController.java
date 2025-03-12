@@ -18,7 +18,7 @@ public class BookController {
     public BookDetailsModel getBook(@PathVariable long isbn) {
         return bookService.getBook(isbn);
     }
-    
+
     @GetMapping()
     public List<BookDetailsModel> getBooks() {
         return bookService.getBooks();
