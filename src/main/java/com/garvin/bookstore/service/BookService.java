@@ -7,6 +7,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class BookService {
 
@@ -14,10 +17,24 @@ public class BookService {
     BookRepository bookRepository;
 
     public BookDetailsModel getBook(long isbn) {
+        Iterable<BookEntity> bookEntities = bookRepository.findAll();
         BookEntity bookEntity = bookRepository.findByIsbn(isbn);
 
         BookDetailsModel returnValue = new BookDetailsModel();
         BeanUtils.copyProperties(bookEntity, returnValue);
+
+        return returnValue;
+    }
+
+    public List<BookDetailsModel> getBooks() {
+        List<BookDetailsModel> returnValue = new ArrayList<>();
+
+        List<BookEntity> bookEntities = bookRepository.findAll();
+        for (BookEntity bookEntity: bookEntities) {
+            BookDetailsModel bookDetailsModel = new BookDetailsModel();
+            BeanUtils.copyProperties(bookEntity, bookDetailsModel);
+            returnValue.add(bookDetailsModel);
+        }
 
         return returnValue;
     }

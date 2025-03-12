@@ -1,1 +1,2 @@
-insert into books (title, author, isbn, base_price) values ('The Iliad', 'Emily Wilson', 9, 20.00);
+insert into books (title, author, isbn, base_price) values ('The Iliad', 'Emily Wilson', 9781324001805, 20.00);
+insert into books (title, author, isbn, base_price) values ('Children of Time', 'Adrian Tchaikovsky', 9781447273301, 10.00);
