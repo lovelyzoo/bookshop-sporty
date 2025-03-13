@@ -25,7 +25,7 @@ public class BookEntity implements Serializable {
     private long isbn;
 
     @Column(nullable = false)
-    private BigDecimal base_price;
+    private BigDecimal basePrice;
 
     @OneToMany (fetch = FetchType.LAZY)
     @JoinColumn (name = "book_id", referencedColumnName = "book_id")
@@ -63,12 +63,12 @@ public class BookEntity implements Serializable {
         this.isbn = isbn;
     }
 
-    public BigDecimal getBase_price() {
-        return base_price;
+    public BigDecimal getBasePrice() {
+        return basePrice;
     }
 
-    public void setBase_price(BigDecimal base_price) {
-        this.base_price = base_price;
+    public void setBasePrice(BigDecimal basePrice) {
+        this.basePrice = basePrice;
     }
 
     public Set<InventoryEntity> getInventory() {

@@ -3,11 +3,11 @@ package com.garvin.bookstore.model;
 import java.math.BigDecimal;
 import java.util.Set;
 
-public class BookDetailsModel {
+public class BookModel {
     private String title;
     private String author;
     private long isbn;
-    private BigDecimal base_price;
+    private BigDecimal basePrice;
     private Set<InventoryModel> inventory;
 
     public String getTitle() {
@@ -34,12 +34,12 @@ public class BookDetailsModel {
         this.isbn = isbn;
     }
 
-    public BigDecimal getBase_price() {
-        return base_price;
+    public BigDecimal getBasePrice() {
+        return basePrice;
     }
 
-    public void setBase_price(BigDecimal base_price) {
-        this.base_price = base_price;
+    public void setBasePrice(BigDecimal basePrice) {
+        this.basePrice = basePrice;
     }
 
     public Set<InventoryModel> getInventory() {

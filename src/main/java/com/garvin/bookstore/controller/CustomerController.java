@@ -1,6 +1,5 @@
 package com.garvin.bookstore.controller;
 
-import com.garvin.bookstore.model.BookDetailsModel;
 import com.garvin.bookstore.model.CustomerModel;
 import com.garvin.bookstore.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;

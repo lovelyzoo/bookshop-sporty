@@ -3,7 +3,7 @@ package com.garvin.bookstore.service;
 import com.garvin.bookstore.entity.BookEntity;
 import com.garvin.bookstore.entity.BookRepository;
 import com.garvin.bookstore.entity.InventoryEntity;
-import com.garvin.bookstore.model.BookDetailsModel;
+import com.garvin.bookstore.model.BookModel;
 import com.garvin.bookstore.model.InventoryModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,24 +25,24 @@ public class BookService {
     @Autowired
     BookRepository bookRepository;
 
-    public BookDetailsModel getBook(long isbn) {
+    public BookModel getBook(long isbn) {
         return createModel(bookRepository.findByIsbn(isbn));
     }
 
-    public List<BookDetailsModel> getBooks() {
-        List<BookDetailsModel> returnValue = new ArrayList<>();
+    public List<BookModel> getBooks() {
+        List<BookModel> returnValue = new ArrayList<>();
 
         List<BookEntity> bookEntities = bookRepository.findAll();
         for (BookEntity bookEntity: bookEntities) {
-            BookDetailsModel bookDetailsModel = createModel(bookEntity);
-            returnValue.add(bookDetailsModel);
+            BookModel bookModel = createModel(bookEntity);
+            returnValue.add(bookModel);
         }
 
         return returnValue;
     }
 
-    private BookDetailsModel createModel(BookEntity bookEntity) {
-        BookDetailsModel returnValue = new BookDetailsModel();
+    private BookModel createModel(BookEntity bookEntity) {
+        BookModel returnValue = new BookModel();
         BeanUtils.copyProperties(bookEntity, returnValue);
 
         Set<InventoryModel> inventory = new HashSet<>();
