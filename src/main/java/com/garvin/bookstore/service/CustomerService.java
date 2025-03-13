@@ -20,6 +20,14 @@ public class CustomerService {
     @Autowired
     CustomerRepository customerRepository;
 
+    public CustomerModel getCustomer(String userId) {
+        CustomerModel returnValue = new CustomerModel();
+
+        CustomerEntity customerEntity = customerRepository.findByUserId(userId);
+        BeanUtils.copyProperties(customerEntity, returnValue);
+        return returnValue;
+    }
+
     public List<CustomerModel> getCustomers() {
         List<CustomerModel> returnValue = new ArrayList<>();
 

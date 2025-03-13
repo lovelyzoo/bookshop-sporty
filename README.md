@@ -26,7 +26,7 @@ The `mvn spring-boot:run` command will now start the application.
 
 ## Usage
 
-### Retrieving the books available for purchase
+### Returning the books available for purchase
 
 #### Individual book
 GET `/books/{isbn}`:
@@ -79,6 +79,32 @@ $ curl -X GET http://localhost:8080/books
 ]
 ```
 
+### Returning the loyalty points for a customer
+
+#### Individual customer
+
+GET `/customers/{userId}`:
+```
+$ curl -X GET http://localhost:8080/customers/0E4NJH584C
+{"userId":"0E4NJH584C","loyaltyPoints":23}
+```
+
+#### All customers
+
+GET `/customers`:
+```
+[
+  {
+    "userId": "S0PPQX6O1U",
+    "loyaltyPoints": 12
+  },
+  {
+    "userId": "0E4NJH584C",
+    "loyaltyPoints": 23
+  },
+  ...
+]
+```
 
 ## Design Decisions
 
