@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Entity(name = "books")
 public class BookEntity implements Serializable {
@@ -25,6 +26,10 @@ public class BookEntity implements Serializable {
 
     @Column(nullable = false)
     private BigDecimal base_price;
+
+    @OneToMany (fetch = FetchType.LAZY)
+    @JoinColumn (name = "book_id", referencedColumnName = "book_id")
+    private Set<InventoryEntity> inventory;
 
     public long getBook_id() {
         return book_id;
@@ -64,5 +69,9 @@ public class BookEntity implements Serializable {
 
     public void setBase_price(BigDecimal base_price) {
         this.base_price = base_price;
+    }
+
+    public Set<InventoryEntity> getInventory() {
+        return inventory;
     }
 }

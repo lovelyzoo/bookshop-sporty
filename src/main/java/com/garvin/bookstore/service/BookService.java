@@ -27,14 +27,11 @@ public class BookService {
     InventoryRepository inventoryRepository;
 
     public BookDetailsModel getBook(long isbn) {
-        logger.info("getBook");
-        List<InventoryEntity> inventoryEntities = inventoryRepository.findAll();
-        logger.info("well, we got this far..." );
-        for (InventoryEntity inventoryEntity: inventoryEntities) {
-            logger.info("inventory: " + inventoryEntity.getType());
-        }
 
         BookEntity bookEntity = bookRepository.findByIsbn(isbn);
+        for (InventoryEntity inventoryEntity: bookEntity.getInventory()) {
+            logger.info("inventory: " + inventoryEntity.getType());
+        }
 
         BookDetailsModel returnValue = new BookDetailsModel();
         BeanUtils.copyProperties(bookEntity, returnValue);

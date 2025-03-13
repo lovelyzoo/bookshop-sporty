@@ -1,12 +1,16 @@
 package com.garvin.bookstore.model;
 
+import com.garvin.bookstore.entity.InventoryEntity;
+
 import java.math.BigDecimal;
+import java.util.Set;
 
 public class BookDetailsModel {
     private String title;
     private String author;
     private long isbn;
     private BigDecimal base_price;
+    private Set<InventoryEntity> inventory;
 
     public String getTitle() {
         return title;
@@ -38,5 +42,13 @@ public class BookDetailsModel {
 
     public void setBase_price(BigDecimal base_price) {
         this.base_price = base_price;
+    }
+
+    public Set<InventoryEntity> getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(Set<InventoryEntity> inventory) {
+        this.inventory = inventory;
     }
 }
