@@ -14,7 +14,7 @@ public class PurchaseService {
 
     public String getPrice(PurchaseModel purchaseModel) {
         logger.info(purchaseModel.getUserId());
-        for (PurchaseItemModel item: purchaseModel.getItems()) {
+        for (PurchaseItemModel item: purchaseModel.getPurchaseItems()) {
             logger.info(item.getType());
         }
         return "getPrice was called";

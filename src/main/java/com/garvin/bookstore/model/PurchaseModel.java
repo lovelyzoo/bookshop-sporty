@@ -4,7 +4,8 @@ import java.util.List;
 
 public class PurchaseModel {
     private String userId;
-    private List<PurchaseItemModel> items;
+    private List<PurchaseItemModel> purchaseItems;
+    private List<PurchaseItemModel> freeItems;
 
     public String getUserId() {
         return userId;
@@ -14,11 +15,19 @@ public class PurchaseModel {
         this.userId = userId;
     }
 
-    public List<PurchaseItemModel> getItems() {
-        return items;
+    public List<PurchaseItemModel> getPurchaseItems() {
+        return purchaseItems;
     }
 
-    public void setItems(List<PurchaseItemModel> items) {
-        this.items = items;
+    public void setPurchaseItems(List<PurchaseItemModel> purchaseItems) {
+        this.purchaseItems = purchaseItems;
+    }
+
+    public List<PurchaseItemModel> getFreeItems() {
+        return freeItems;
+    }
+
+    public void setFreeItems(List<PurchaseItemModel> freeItems) {
+        this.freeItems = freeItems;
     }
 }
