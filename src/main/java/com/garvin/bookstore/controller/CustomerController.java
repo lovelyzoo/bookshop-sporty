@@ -17,12 +17,12 @@ public class CustomerController {
     CustomerService customerService;
 
     @GetMapping("/{userId}")
-    public CustomerModel getBook(@PathVariable String userId) {
+    public CustomerModel getCustomer(@PathVariable String userId) {
         return customerService.getCustomer(userId);
     }
 
     @GetMapping()
-    public List<CustomerModel> getBooks() {
+    public List<CustomerModel> getCustomers() {
         return customerService.getCustomers();
     }
 }
