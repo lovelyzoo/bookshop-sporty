@@ -60,16 +60,4 @@ public class BookService {
         return returnValue;
     }
 
-    // TODO: remove this
-    public BookDetailsModel createBook(BookDetailsModel bookDetails) {
-        BookEntity bookEntity = new BookEntity();
-        BeanUtils.copyProperties(bookDetails, bookEntity);
-
-        BookEntity storedDetails = bookRepository.save(bookEntity);
-
-        BookDetailsModel returnValue = new BookDetailsModel();
-        BeanUtils.copyProperties(storedDetails, returnValue);
-
-        return returnValue;
-    }
 }

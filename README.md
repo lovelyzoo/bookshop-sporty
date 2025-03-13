@@ -23,3 +23,66 @@ Now run:
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ```
 The `mvn spring-boot:run` command will now start the application.
+
+## Usage
+
+### Retrieving the books available for purchase
+
+#### Individual book
+GET `/books/{isbn}`:
+```
+$ curl -X GET http://localhost:8080/books/9781447273301
+{
+  "title": "Children of Time",
+  "author": "Adrian Tchaikovsky",
+  "isbn": 9781447273301,
+  "base_price": 10,
+  "inventory": [
+    {
+      "type": "N",
+      "stock": 7
+    }
+  ]
+}
+```
+
+#### All books
+GET `/books`
+```
+$ curl -X GET http://localhost:8080/books
+[
+  {
+    "title": "The Iliad",
+    "author": "Emily Wilson",
+    "isbn": 9781324001805,
+    "base_price": 20,
+    "inventory": [
+      {
+        "type": "O",
+        "stock": 5
+      }
+    ]
+  },
+  {
+    "title": "Children of Time",
+    "author": "Adrian Tchaikovsky",
+    "isbn": 9781447273301,
+    "base_price": 10,
+    "inventory": [
+      {
+        "type": "N",
+        "stock": 7
+      }
+    ]
+  },
+  ...
+]
+```
+
+
+## Design Decisions
+
+- Spring popular framework, 
+- H2, handy for prototyping
+- distinct table for books v inv, normalisation, prices can be determined from base price of book
+- InventoryPK possibly overkill but matches schema

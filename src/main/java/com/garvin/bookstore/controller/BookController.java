@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("book")
+@RequestMapping("books")
 public class BookController {
 
     @Autowired
@@ -24,8 +24,4 @@ public class BookController {
         return bookService.getBooks();
     }
 
-    @PostMapping
-    public BookDetailsModel createBook(@RequestBody BookDetailsModel bookDetails) {
-        return bookService.createBook(bookDetails);
-    }
 }
