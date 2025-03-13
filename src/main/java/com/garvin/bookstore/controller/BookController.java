@@ -10,7 +10,6 @@ import java.util.List;
 @RestController
 @RequestMapping("books")
 public class BookController {
-
     @Autowired
     BookService bookService;
 
@@ -23,5 +22,4 @@ public class BookController {
     public List<BookDetailsModel> getBooks() {
         return bookService.getBooks();
     }
-
 }

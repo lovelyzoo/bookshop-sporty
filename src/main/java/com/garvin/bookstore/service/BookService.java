@@ -3,7 +3,6 @@ package com.garvin.bookstore.service;
 import com.garvin.bookstore.entity.BookEntity;
 import com.garvin.bookstore.entity.BookRepository;
 import com.garvin.bookstore.entity.InventoryEntity;
-import com.garvin.bookstore.entity.InventoryRepository;
 import com.garvin.bookstore.model.BookDetailsModel;
 import com.garvin.bookstore.model.InventoryModel;
 import org.springframework.beans.BeanUtils;
@@ -25,9 +24,6 @@ public class BookService {
 
     @Autowired
     BookRepository bookRepository;
-
-    @Autowired
-    InventoryRepository inventoryRepository;
 
     public BookDetailsModel getBook(long isbn) {
         return createModel(bookRepository.findByIsbn(isbn));

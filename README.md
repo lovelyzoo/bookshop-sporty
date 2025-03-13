@@ -86,3 +86,5 @@ $ curl -X GET http://localhost:8080/books
 - H2, handy for prototyping
 - distinct table for books v inv, normalisation, prices can be determined from base price of book
 - InventoryPK possibly overkill but matches schema
+- user_id field in customer table, security, protect db details from attacker
+- a note on camel case
