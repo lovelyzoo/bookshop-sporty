@@ -1,8 +1,8 @@
 package com.garvin.bookstore.service;
 
 import com.garvin.bookstore.controller.PurchaseController;
-import com.garvin.bookstore.entity.BookEntity;
-import com.garvin.bookstore.entity.BookRepository;
+import com.garvin.bookstore.db.BookEntity;
+import com.garvin.bookstore.db.BookRepository;
 import com.garvin.bookstore.model.PurchaseItemModel;
 import com.garvin.bookstore.model.PurchaseModel;
 import org.slf4j.Logger;

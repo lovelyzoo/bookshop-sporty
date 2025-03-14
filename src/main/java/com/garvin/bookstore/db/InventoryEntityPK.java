@@ -1,4 +1,4 @@
-package com.garvin.bookstore.entity;
+package com.garvin.bookstore.db;
 
 import java.io.Serial;
 import java.io.Serializable;

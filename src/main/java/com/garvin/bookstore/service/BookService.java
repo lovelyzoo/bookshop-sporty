@@ -1,8 +1,8 @@
 package com.garvin.bookstore.service;
 
-import com.garvin.bookstore.entity.BookEntity;
-import com.garvin.bookstore.entity.BookRepository;
-import com.garvin.bookstore.entity.InventoryEntity;
+import com.garvin.bookstore.db.BookEntity;
+import com.garvin.bookstore.db.BookRepository;
+import com.garvin.bookstore.db.InventoryEntity;
 import com.garvin.bookstore.model.BookModel;
 import com.garvin.bookstore.model.InventoryModel;
 import org.springframework.beans.BeanUtils;

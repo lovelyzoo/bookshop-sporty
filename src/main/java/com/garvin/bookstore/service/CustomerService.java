@@ -1,7 +1,7 @@
 package com.garvin.bookstore.service;
 
-import com.garvin.bookstore.entity.CustomerEntity;
-import com.garvin.bookstore.entity.CustomerRepository;
+import com.garvin.bookstore.db.CustomerEntity;
+import com.garvin.bookstore.db.CustomerRepository;
 import com.garvin.bookstore.model.CustomerModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

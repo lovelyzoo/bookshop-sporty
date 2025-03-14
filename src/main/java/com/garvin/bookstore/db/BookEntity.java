@@ -1,4 +1,4 @@
-package com.garvin.bookstore.entity;
+package com.garvin.bookstore.db;
 
 import jakarta.persistence.*;
 
