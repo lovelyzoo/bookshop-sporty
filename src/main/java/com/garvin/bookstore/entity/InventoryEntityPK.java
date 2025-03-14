@@ -21,7 +21,8 @@ public class InventoryEntityPK implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof InventoryEntityPK that)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
+        InventoryEntityPK that = (InventoryEntityPK) o;
         return book_id == that.book_id && Objects.equals(type, that.type);
     }
 
