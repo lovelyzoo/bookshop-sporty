@@ -20,7 +20,6 @@ public class BookEntity implements Serializable {
     private String title;
     private String author;
 
-    // TODO: guarantee uniqueness
     @Column(nullable = false)
     private long isbn;
 
