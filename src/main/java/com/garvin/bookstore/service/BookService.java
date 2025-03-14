@@ -5,6 +5,7 @@ import com.garvin.bookstore.db.BookRepository;
 import com.garvin.bookstore.db.InventoryEntity;
 import com.garvin.bookstore.model.BookModel;
 import com.garvin.bookstore.model.InventoryModel;
+import com.garvin.bookstore.properties.GlobalProperties;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,9 @@ public class BookService {
     @Autowired
     BookRepository bookRepository;
 
+
     public BookModel getBook(long isbn) {
+
         return createModel(bookRepository.findByIsbn(isbn));
     }
 

@@ -5,6 +5,7 @@ import com.garvin.bookstore.db.BookEntity;
 import com.garvin.bookstore.db.BookRepository;
 import com.garvin.bookstore.model.PurchaseItemModel;
 import com.garvin.bookstore.model.PurchaseModel;
+import com.garvin.bookstore.properties.GlobalProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +21,16 @@ public class PurchaseService {
     @Autowired
     BookRepository bookRepository;
 
+    @Autowired
+    GlobalProperties globalProperties;
+
     public String getPrice(PurchaseModel purchaseModel) {
+        // Test get the info
         logger.info(purchaseModel.getUserId());
+        for (GlobalProperties.BookType bookType : globalProperties.getBooktypes()) {
+            logger.info(bookType.getType());
+        }
+
         BigDecimal total = BigDecimal.ZERO;
         for (PurchaseItemModel item: purchaseModel.getPurchaseItems()) {
             BookEntity bookEntity = bookRepository.findByIsbn(item.getIsbn());
