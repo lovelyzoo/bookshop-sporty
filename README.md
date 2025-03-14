@@ -4,9 +4,11 @@ An implementation of Sporty group's Backend Engineer takehome assignment.
 
 ## Running this application
 
-Assuming Java 17 is installed, running the following command should suffice: 
+Assuming Java 17 is installed, running the following sequence of commands will start this application: 
 ```
-mvn spring-boot:run
+mvn clean install
+cd target
+java -jar bookstore-0.0.1-SNAPSHOT.jar
 ```
 
 If you see an error along the lines of:
@@ -22,7 +24,7 @@ Now run:
 ```
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ```
-The `mvn spring-boot:run` command will now start the application.
+The sequence of commands above will now start the application.
 
 ## Usage
 
