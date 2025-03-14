@@ -108,6 +108,11 @@ GET `/customers`:
 ]
 ```
 
+### Purchase
+```
+curl -H "Content-Type: application/json" -X GET --data '{"userId": "EORIZQA123", "purchaseItems": [{"isbn": "9781324001805", "type": "N", "quantity": "2"}], "freeItems": []}' http://localhost:8080/purchase
+```
+
 ## Design Decisions
 
 - Spring popular framework, 
