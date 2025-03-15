@@ -43,7 +43,7 @@ public class PurchaseService {
         }
     }
 
-    private static boolean isPurchaseInStock(PurchaseItemModel purchaseItemModel, Set<InventoryEntity> inventoryEntities) {
+    private static boolean isInStock(PurchaseItemModel purchaseItemModel, Set<InventoryEntity> inventoryEntities) {
         Iterator<InventoryEntity> inventoryEntityIterator = inventoryEntities.iterator();
         while(inventoryEntityIterator.hasNext()){
             InventoryEntity inventoryEntity = inventoryEntityIterator.next();
@@ -144,7 +144,7 @@ public class PurchaseService {
         for (PurchaseItemModel item: purchaseModel.getPurchaseItems()) {
             BookEntity bookEntity = bookRepository.findByIsbn(item.getIsbn());
 
-            if (!isPurchaseInStock(item, bookEntity.getInventory())) {
+            if (!isInStock(item, bookEntity.getInventory())) {
                 calculateOutcomeReturnValue.setStatus(String.format("Insufficient stock of %s %s to meet purchase", item.getIsbn(), item.getType()));
                 return calculateOutcomeReturnValue;
             }
@@ -196,9 +196,6 @@ public class PurchaseService {
 
         BeanUtils.copyProperties(purchaseModel, returnValue);
         BeanUtils.copyProperties(calculateOutcomeReturnValue, returnValue);
-//        returnValue.setTotalCost(calculateOutcomeReturnValue.getTotalCost());
-//        returnValue.setLoyaltyPointsBalance(calculateOutcomeReturnValue.getLoyaltyPointsBalance());
-//        returnValue.setCanCompleteTransaction();
 
         return returnValue;
     }
