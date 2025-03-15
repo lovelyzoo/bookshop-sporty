@@ -44,22 +44,6 @@ public class PurchaseService {
         }
     }
 
-    private static boolean isInStock(PurchaseItemModel purchaseItemModel, Set<InventoryEntity> inventoryEntities) {
-        Iterator<InventoryEntity> inventoryEntityIterator = inventoryEntities.iterator();
-        while(inventoryEntityIterator.hasNext()){
-            InventoryEntity inventoryEntity = inventoryEntityIterator.next();
-            if (inventoryEntity.getType().equals(purchaseItemModel.getType())) {
-                if (inventoryEntity.getStock() >= purchaseItemModel.getQuantity()) {
-                    return true;
-                } else {
-                    return false;
-                }
-
-            }
-        }
-        return false;
-    }
-
     static class CalculateOutcomeReturnValue {
         BigDecimal totalCost;
         long loyaltyPointsBalance;
