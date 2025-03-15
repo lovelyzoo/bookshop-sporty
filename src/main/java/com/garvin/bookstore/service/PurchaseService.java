@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -93,7 +94,6 @@ public class PurchaseService {
 
         calculateOutcomeReturnValue.setCanCompleteTransaction(false);
 
-        //test
         PurchaseStockTracker purchaseStockTracker = new PurchaseStockTracker(bookRepository);
 
         // Determine the bundle size
@@ -105,7 +105,6 @@ public class PurchaseService {
         if (bundleSize >= 3) {
             modifier = bundleModifier;
         }
-        //bundleModifier.get(item.getType());
 
         BigDecimal totalCost = BigDecimal.ZERO;
 
@@ -155,6 +154,7 @@ public class PurchaseService {
         }
 
         // Setup return for success
+        totalCost = totalCost.setScale(2, RoundingMode.UP);
         calculateOutcomeReturnValue.setTotalCost(totalCost);
         calculateOutcomeReturnValue.setLoyaltyPointsBalance(loyaltyPointsBalance);
         calculateOutcomeReturnValue.setCanCompleteTransaction(true);
