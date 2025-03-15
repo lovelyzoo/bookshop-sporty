@@ -31,8 +31,8 @@ public class PurchaseService {
     @Autowired
     BookTypeProperties bookTypeProperties;
 
-    private HashMap<String, BigDecimal> priceModifier = new HashMap<String, BigDecimal>();
-    private HashMap<String, BigDecimal> bundleModifier = new HashMap<String, BigDecimal>();
+    private final HashMap<String, BigDecimal> priceModifier = new HashMap<String, BigDecimal>();
+    private final HashMap<String, BigDecimal> bundleModifier = new HashMap<String, BigDecimal>();
 
     @PostConstruct
     private void postConstruct() {
@@ -59,9 +59,11 @@ public class PurchaseService {
         return false;
     }
 
-    class CalculateOutcomeReturnValue {
+    static class CalculateOutcomeReturnValue {
         BigDecimal totalCost;
         long loyaltyPointsBalance;
+        boolean canCompleteTransaction;
+        String status;
 
         public BigDecimal getTotalCost() {
             return totalCost;
@@ -78,30 +80,55 @@ public class PurchaseService {
         public void setLoyaltyPointsBalance(long loyaltyPointsBalance) {
             this.loyaltyPointsBalance = loyaltyPointsBalance;
         }
+
+        public boolean isCanCompleteTransaction() {
+            return canCompleteTransaction;
+        }
+
+        public void setCanCompleteTransaction(boolean canCompleteTransaction) {
+            this.canCompleteTransaction = canCompleteTransaction;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
     }
 
     private CalculateOutcomeReturnValue calculateOutcome(PurchaseModel purchaseModel) {
+        // Initialise return value
+        CalculateOutcomeReturnValue calculateOutcomeReturnValue = new CalculateOutcomeReturnValue();
+        CustomerEntity customerEntity = customerRepository.findByUserId(purchaseModel.getUserId());
+        long currentLoyaltyPoints = customerEntity.getLoyaltyPoints();
+        calculateOutcomeReturnValue.setLoyaltyPointsBalance(currentLoyaltyPoints);
+        calculateOutcomeReturnValue.setCanCompleteTransaction(false);
+
+        // Confirm uniqueness of purchase items
         HashMap<String, Long> purchaseItems = new HashMap<String, Long>();
         for (PurchaseItemModel item: purchaseModel.getPurchaseItems()) {
-            String key = String.format("%s%s", item.getIsbn(), item.getType());
+            String key = String.format("%s %s", item.getIsbn(), item.getType());
             Long previous = purchaseItems.put(key, item.getQuantity());
             if (previous != null) {
-                logger.info("{} has been seen before", key);
+                calculateOutcomeReturnValue.setStatus(String.format("%s occurs more than once in purchaseItems", key));
+                return calculateOutcomeReturnValue;
             }
         }
 
+        // Confirm uniqueness of free items
         HashMap<String, Long> freeItems = new HashMap<String, Long>();
         for (PurchaseItemModel item: purchaseModel.getFreeItems()) {
             String key = String.format("%s%s", item.getIsbn(), item.getType());
             Long previous = freeItems.put(key, item.getQuantity());
             if (previous != null) {
-                logger.info("{} has been seen before", key);
+                calculateOutcomeReturnValue.setStatus(String.format("%s occurs more than once in freeItems", key));
+                return calculateOutcomeReturnValue;
             }
         }
 
-        CustomerEntity customerEntity = customerRepository.findByUserId(purchaseModel.getUserId());
-        long currentLoyaltyPoints = customerEntity.getLoyaltyPoints();
-
+        // Determine the bundle size
         long purchaseItemsCount = purchaseModel.getPurchaseItems().stream()
                 .map(PurchaseItemModel::getQuantity)
                 .mapToLong(Long::longValue).sum();
@@ -118,11 +145,13 @@ public class PurchaseService {
             BookEntity bookEntity = bookRepository.findByIsbn(item.getIsbn());
 
             if (!isPurchaseInStock(item, bookEntity.getInventory())) {
-                logger.info("There is insufficient stock to meet this order");
+                calculateOutcomeReturnValue.setStatus(String.format("Insufficient stock of %s %s to meet purchase", item.getIsbn(), item.getType()));
+                return calculateOutcomeReturnValue;
             }
 
             Long purchaseQuantity = item.getQuantity();
             Long freeQuantity = freeItems.getOrDefault(String.format("%s%s", item.getIsbn(), item.getType()), 0L);
+            // TODO: is the item a 'free' one?
             if (freeQuantity <= purchaseQuantity) {
                 freeBooksTotal = freeBooksTotal + freeQuantity;
                 purchaseQuantity = purchaseQuantity - freeQuantity;
@@ -138,22 +167,26 @@ public class PurchaseService {
                         .multiply(BigDecimal.valueOf(purchaseQuantity))
                 );
             } else {
-                logger.info("more free copies have been requested than what's available");
+                calculateOutcomeReturnValue.setStatus(String.format("Insufficient stock of %s %s to meet loyalty points redemption", item.getIsbn(), item.getType()));
+                return calculateOutcomeReturnValue;
             }
         }
 
+        // Loyalty Points calculation
         long loyaltyPointsCredit = currentLoyaltyPoints + loyaltyPointsAwarded;
         long loyaltyPointsDebit = freeBooksTotal * 10L;
-
         if (loyaltyPointsDebit > loyaltyPointsCredit) {
-            logger.info("not enough loyalty points to cover requested free books");
+            calculateOutcomeReturnValue.setStatus(String.format("Insufficient loyalty points"));
+            return calculateOutcomeReturnValue;
         }
 
-        logger.info("totalCost: {} lpcredit: {} lpdebit: {}", String.valueOf(totalCost), String.valueOf(loyaltyPointsCredit), String.valueOf(loyaltyPointsDebit));
+        logger.debug("totalCost: {} lpcredit: {} lpdebit: {}", String.valueOf(totalCost), String.valueOf(loyaltyPointsCredit), String.valueOf(loyaltyPointsDebit));
 
-        CalculateOutcomeReturnValue calculateOutcomeReturnValue = new CalculateOutcomeReturnValue();
+        // Setup return for success
         calculateOutcomeReturnValue.setTotalCost(totalCost);
         calculateOutcomeReturnValue.setLoyaltyPointsBalance(loyaltyPointsCredit - loyaltyPointsDebit);
+        calculateOutcomeReturnValue.setCanCompleteTransaction(true);
+        calculateOutcomeReturnValue.setStatus(String.format("OK"));
         return calculateOutcomeReturnValue;
     }
 
@@ -162,8 +195,10 @@ public class PurchaseService {
         CalculateOutcomeReturnValue calculateOutcomeReturnValue = calculateOutcome(purchaseModel);
 
         BeanUtils.copyProperties(purchaseModel, returnValue);
-        returnValue.setTotalCost(calculateOutcomeReturnValue.getTotalCost());
-        returnValue.setLoyaltyPointsBalance(calculateOutcomeReturnValue.getLoyaltyPointsBalance());
+        BeanUtils.copyProperties(calculateOutcomeReturnValue, returnValue);
+//        returnValue.setTotalCost(calculateOutcomeReturnValue.getTotalCost());
+//        returnValue.setLoyaltyPointsBalance(calculateOutcomeReturnValue.getLoyaltyPointsBalance());
+//        returnValue.setCanCompleteTransaction();
 
         return returnValue;
     }

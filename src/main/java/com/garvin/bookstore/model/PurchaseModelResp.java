@@ -7,8 +7,8 @@ public class PurchaseModelResp {
     private String userId;
     private BigDecimal totalCost;
     private long loyaltyPointsBalance;
-    private List<PurchaseItemModel> purchaseItems;
-    private List<PurchaseItemModel> freeItems;
+    private boolean canCompleteTransaction;
+    private String status;
 
     public String getUserId() {
         return userId;
@@ -34,19 +34,19 @@ public class PurchaseModelResp {
         this.loyaltyPointsBalance = loyaltyPointsBalance;
     }
 
-    public List<PurchaseItemModel> getPurchaseItems() {
-        return purchaseItems;
+    public boolean isCanCompleteTransaction() {
+        return canCompleteTransaction;
     }
 
-    public void setPurchaseItems(List<PurchaseItemModel> purchaseItems) {
-        this.purchaseItems = purchaseItems;
+    public void setCanCompleteTransaction(boolean canCompleteTransaction) {
+        this.canCompleteTransaction = canCompleteTransaction;
     }
 
-    public List<PurchaseItemModel> getFreeItems() {
-        return freeItems;
+    public String getStatus() {
+        return status;
     }
 
-    public void setFreeItems(List<PurchaseItemModel> freeItems) {
-        this.freeItems = freeItems;
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
