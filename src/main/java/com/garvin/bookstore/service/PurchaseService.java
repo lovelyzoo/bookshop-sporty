@@ -5,6 +5,7 @@ import com.garvin.bookstore.model.PurchaseItemModel;
 import com.garvin.bookstore.model.PurchaseModel;
 import com.garvin.bookstore.model.PurchaseModelResp;
 import com.garvin.bookstore.properties.BookTypeProperties;
+import com.garvin.bookstore.utils.BookStock;
 import com.garvin.bookstore.utils.PurchaseStockTracker;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -12,12 +13,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
 
 @Service
 public class PurchaseService {
@@ -29,6 +29,9 @@ public class PurchaseService {
 
     @Autowired
     CustomerRepository customerRepository;
+
+    @Autowired
+    InventoryRepository inventoryRepository;
 
     @Autowired
     BookTypeProperties bookTypeProperties;
@@ -46,10 +49,13 @@ public class PurchaseService {
     }
 
     static class CalculateOutcomeReturnValue {
-        BigDecimal totalCost;
-        long loyaltyPointsBalance;
-        boolean canCompleteTransaction;
-        String status;
+        private BigDecimal totalCost;
+        private long customer_id;
+        private String userId;
+        private long loyaltyPointsBalance;
+        private PurchaseStockTracker purchaseStockTracker;
+        private boolean canCompleteTransaction;
+        private String status;
 
         public BigDecimal getTotalCost() {
             return totalCost;
@@ -59,12 +65,36 @@ public class PurchaseService {
             this.totalCost = totalCost;
         }
 
+        public long getCustomer_id() {
+            return customer_id;
+        }
+
+        public void setCustomer_id(long customer_id) {
+            this.customer_id = customer_id;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+
         public long getLoyaltyPointsBalance() {
             return loyaltyPointsBalance;
         }
 
         public void setLoyaltyPointsBalance(long loyaltyPointsBalance) {
             this.loyaltyPointsBalance = loyaltyPointsBalance;
+        }
+
+        public PurchaseStockTracker getPurchaseStockTracker() {
+            return purchaseStockTracker;
+        }
+
+        public void setPurchaseStockTracker(PurchaseStockTracker purchaseStockTracker) {
+            this.purchaseStockTracker = purchaseStockTracker;
         }
 
         public boolean isCanCompleteTransaction() {
@@ -89,6 +119,8 @@ public class PurchaseService {
         CalculateOutcomeReturnValue calculateOutcomeReturnValue = new CalculateOutcomeReturnValue();
 
         CustomerEntity customerEntity = customerRepository.findByUserId(purchaseModel.getUserId());
+        calculateOutcomeReturnValue.setCustomer_id(customerEntity.getCustomer_id());
+        calculateOutcomeReturnValue.setUserId(customerEntity.getUserId());
         long loyaltyPointsBalance = customerEntity.getLoyaltyPoints();
         calculateOutcomeReturnValue.setLoyaltyPointsBalance(loyaltyPointsBalance);
 
@@ -157,6 +189,7 @@ public class PurchaseService {
         totalCost = totalCost.setScale(2, RoundingMode.UP);
         calculateOutcomeReturnValue.setTotalCost(totalCost);
         calculateOutcomeReturnValue.setLoyaltyPointsBalance(loyaltyPointsBalance);
+        calculateOutcomeReturnValue.setPurchaseStockTracker(purchaseStockTracker);
         calculateOutcomeReturnValue.setCanCompleteTransaction(true);
         calculateOutcomeReturnValue.setStatus(String.format("OK"));
         return calculateOutcomeReturnValue;
@@ -165,6 +198,37 @@ public class PurchaseService {
     public PurchaseModelResp getOutcome(PurchaseModel purchaseModel) {
         PurchaseModelResp returnValue = new PurchaseModelResp();
         CalculateOutcomeReturnValue calculateOutcomeReturnValue = calculateOutcome(purchaseModel);
+
+        BeanUtils.copyProperties(purchaseModel, returnValue);
+        BeanUtils.copyProperties(calculateOutcomeReturnValue, returnValue);
+
+        return returnValue;
+    }
+
+    @Transactional
+    private void updateDbWithPurchaseChanges(CalculateOutcomeReturnValue calculateOutcomeReturnValue) {
+        PurchaseStockTracker purchaseStockTracker = calculateOutcomeReturnValue.getPurchaseStockTracker();
+        for (BookStock bookStock : calculateOutcomeReturnValue.getPurchaseStockTracker().getBookStocks().values()) {
+            InventoryEntity inventoryEntity = new InventoryEntity();
+            inventoryEntity.setBook_id(bookStock.getBook_id());
+            inventoryEntity.setType(bookStock.getType());
+            inventoryEntity.setStock(bookStock.revisedStock());
+            inventoryRepository.updateOrInsert(inventoryEntity);
+        }
+        CustomerEntity customerEntity = new CustomerEntity();
+        customerEntity.setCustomer_id(calculateOutcomeReturnValue.getCustomer_id());
+        customerEntity.setUserId(calculateOutcomeReturnValue.getUserId());
+        customerEntity.setLoyaltyPoints(calculateOutcomeReturnValue.getLoyaltyPointsBalance());
+        customerRepository.updateOrInsert(customerEntity);
+    }
+
+    public PurchaseModelResp makePurchase(PurchaseModel purchaseModel) {
+        PurchaseModelResp returnValue = new PurchaseModelResp();
+        CalculateOutcomeReturnValue calculateOutcomeReturnValue = calculateOutcome(purchaseModel);
+
+        if (calculateOutcomeReturnValue.canCompleteTransaction) {
+            updateDbWithPurchaseChanges(calculateOutcomeReturnValue);
+        }
 
         BeanUtils.copyProperties(purchaseModel, returnValue);
         BeanUtils.copyProperties(calculateOutcomeReturnValue, returnValue);

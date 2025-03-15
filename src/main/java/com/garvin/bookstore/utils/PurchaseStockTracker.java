@@ -19,11 +19,11 @@ public class PurchaseStockTracker {
     }
 
     public boolean incrementItem(long isbn, String type, long quantity) {
-        String key = String.format("%s%s", isbn, type);
+        String key = String.format("%s %s", isbn, type);
         if (!bookStocks.containsKey(key)) {
             BookEntity bookEntity = bookRepository.findByIsbn(isbn);
             long stock = getStock(type, bookEntity.getInventory());
-            bookStocks.put(key, new BookStock(stock, 0L));
+            bookStocks.put(key, new BookStock(bookEntity.getBook_id(), type, stock, 0L));
         }
 
         BookStock bookStock = bookStocks.get(key);
