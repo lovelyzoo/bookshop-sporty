@@ -5,6 +5,7 @@ import com.garvin.bookstore.model.PurchaseItemModel;
 import com.garvin.bookstore.model.PurchaseModel;
 import com.garvin.bookstore.model.PurchaseModelResp;
 import com.garvin.bookstore.properties.BookTypeProperties;
+import com.garvin.bookstore.utils.PurchaseStockTracker;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,90 +102,77 @@ public class PurchaseService {
     private CalculateOutcomeReturnValue calculateOutcome(PurchaseModel purchaseModel) {
         // Initialise return value
         CalculateOutcomeReturnValue calculateOutcomeReturnValue = new CalculateOutcomeReturnValue();
+
         CustomerEntity customerEntity = customerRepository.findByUserId(purchaseModel.getUserId());
-        long currentLoyaltyPoints = customerEntity.getLoyaltyPoints();
-        calculateOutcomeReturnValue.setLoyaltyPointsBalance(currentLoyaltyPoints);
+        long loyaltyPointsBalance = customerEntity.getLoyaltyPoints();
+        calculateOutcomeReturnValue.setLoyaltyPointsBalance(loyaltyPointsBalance);
+
         calculateOutcomeReturnValue.setCanCompleteTransaction(false);
 
-        // Confirm uniqueness of purchase items
-        HashMap<String, Long> purchaseItems = new HashMap<String, Long>();
-        for (PurchaseItemModel item: purchaseModel.getPurchaseItems()) {
-            String key = String.format("%s %s", item.getIsbn(), item.getType());
-            Long previous = purchaseItems.put(key, item.getQuantity());
-            if (previous != null) {
-                calculateOutcomeReturnValue.setStatus(String.format("%s occurs more than once in purchaseItems", key));
-                return calculateOutcomeReturnValue;
-            }
-        }
-
-        // Confirm uniqueness of free items
-        HashMap<String, Long> freeItems = new HashMap<String, Long>();
-        for (PurchaseItemModel item: purchaseModel.getFreeItems()) {
-            String key = String.format("%s%s", item.getIsbn(), item.getType());
-            Long previous = freeItems.put(key, item.getQuantity());
-            if (previous != null) {
-                calculateOutcomeReturnValue.setStatus(String.format("%s occurs more than once in freeItems", key));
-                return calculateOutcomeReturnValue;
-            }
-        }
+        //test
+        PurchaseStockTracker purchaseStockTracker = new PurchaseStockTracker(bookRepository);
 
         // Determine the bundle size
-        long purchaseItemsCount = purchaseModel.getPurchaseItems().stream()
+        long bundleSize = purchaseModel.getPurchaseItems().stream()
                 .map(PurchaseItemModel::getQuantity)
                 .mapToLong(Long::longValue).sum();
-        long freeItemsCount = purchaseModel.getFreeItems().stream()
-                .map(PurchaseItemModel::getQuantity)
-                .mapToLong(Long::longValue).sum();
-        long bundleSize = purchaseItemsCount - freeItemsCount;
-        logger.info("bundleSize:" + bundleSize);
+
+        HashMap<String, BigDecimal> modifier = priceModifier;
+        if (bundleSize >= 3) {
+            modifier = bundleModifier;
+        }
+        //bundleModifier.get(item.getType());
 
         BigDecimal totalCost = BigDecimal.ZERO;
-        long freeBooksTotal = 0;
-        long loyaltyPointsAwarded = 0;
+
+        // Handle the items that are being paid for
+        HashMap<String, Long> purchaseItems = new HashMap<String, Long>();
         for (PurchaseItemModel item: purchaseModel.getPurchaseItems()) {
-            BookEntity bookEntity = bookRepository.findByIsbn(item.getIsbn());
+            long isbn = item.getIsbn();
+            String type = item.getType();
+            long quantity = item.getQuantity();
 
-            if (!isInStock(item, bookEntity.getInventory())) {
-                calculateOutcomeReturnValue.setStatus(String.format("Insufficient stock of %s %s to meet purchase", item.getIsbn(), item.getType()));
+            BookEntity bookEntity = bookRepository.findByIsbn(isbn);
+            if (!purchaseStockTracker.incrementItem(isbn, type, quantity)) {
+                calculateOutcomeReturnValue.setStatus(String.format("Insufficient stock of %s %s", isbn, type));
                 return calculateOutcomeReturnValue;
             }
 
-            Long purchaseQuantity = item.getQuantity();
-            Long freeQuantity = freeItems.getOrDefault(String.format("%s%s", item.getIsbn(), item.getType()), 0L);
-            // TODO: is the item a 'free' one?
-            if (freeQuantity <= purchaseQuantity) {
-                freeBooksTotal = freeBooksTotal + freeQuantity;
-                purchaseQuantity = purchaseQuantity - freeQuantity;
-                loyaltyPointsAwarded = loyaltyPointsAwarded + purchaseQuantity;
+            totalCost = totalCost.add(bookEntity.getBasePrice()
+                    .multiply(modifier.get(type))
+                    .multiply(BigDecimal.valueOf(quantity))
+            );
+            loyaltyPointsBalance = loyaltyPointsBalance + quantity;
+        }
 
-                BigDecimal modifier = priceModifier.get(item.getType());
-                if (bundleSize >= 3) {
-                    modifier = bundleModifier.get(item.getType());
-                }
+        // Handle the free items
+        HashMap<String, Long> freeItems = new HashMap<String, Long>();
+        for (PurchaseItemModel item: purchaseModel.getFreeItems()) {
+            long isbn = item.getIsbn();
+            String type = item.getType();
+            long quantity = item.getQuantity();
 
-                totalCost = totalCost.add(bookEntity.getBasePrice()
-                        .multiply(modifier)
-                        .multiply(BigDecimal.valueOf(purchaseQuantity))
-                );
-            } else {
-                calculateOutcomeReturnValue.setStatus(String.format("Insufficient stock of %s %s to meet loyalty points redemption", item.getIsbn(), item.getType()));
+            if (type.equals("N")) {
+                calculateOutcomeReturnValue.setStatus(String.format("%s %s is not eligible for a loyalty point claim", isbn, type));
+                return calculateOutcomeReturnValue;
+            }
+
+            BookEntity bookEntity = bookRepository.findByIsbn(isbn);
+            if (!purchaseStockTracker.incrementItem(isbn, type, quantity)) {
+                calculateOutcomeReturnValue.setStatus(String.format("Insufficient stock of %s %s", isbn, type));
+                return calculateOutcomeReturnValue;
+            }
+
+            loyaltyPointsBalance = loyaltyPointsBalance - 10;
+            if (loyaltyPointsBalance < 0) {
+                calculateOutcomeReturnValue.setStatus(String.format("Insufficient loyalty points"));
                 return calculateOutcomeReturnValue;
             }
         }
-
-        // Loyalty Points calculation
-        long loyaltyPointsCredit = currentLoyaltyPoints + loyaltyPointsAwarded;
-        long loyaltyPointsDebit = freeBooksTotal * 10L;
-        if (loyaltyPointsDebit > loyaltyPointsCredit) {
-            calculateOutcomeReturnValue.setStatus(String.format("Insufficient loyalty points"));
-            return calculateOutcomeReturnValue;
-        }
-
-        logger.debug("totalCost: {} lpcredit: {} lpdebit: {}", String.valueOf(totalCost), String.valueOf(loyaltyPointsCredit), String.valueOf(loyaltyPointsDebit));
 
         // Setup return for success
         calculateOutcomeReturnValue.setTotalCost(totalCost);
-        calculateOutcomeReturnValue.setLoyaltyPointsBalance(loyaltyPointsCredit - loyaltyPointsDebit);
+        calculateOutcomeReturnValue.setLoyaltyPointsBalance(loyaltyPointsBalance);
         calculateOutcomeReturnValue.setCanCompleteTransaction(true);
         calculateOutcomeReturnValue.setStatus(String.format("OK"));
         return calculateOutcomeReturnValue;
