@@ -81,6 +81,15 @@ public class PurchaseService {
     }
 
     private CalculateOutcomeReturnValue calculateOutcome(PurchaseModel purchaseModel) {
+        HashMap<String, Long> purchaseItems = new HashMap<String, Long>();
+        for (PurchaseItemModel item: purchaseModel.getPurchaseItems()) {
+            String key = String.format("%s%s", item.getIsbn(), item.getType());
+            Long previous = purchaseItems.put(key, item.getQuantity());
+            if (previous != null) {
+                logger.info("{} has been seen before", key);
+            }
+        }
+
         HashMap<String, Long> freeItems = new HashMap<String, Long>();
         for (PurchaseItemModel item: purchaseModel.getFreeItems()) {
             String key = String.format("%s%s", item.getIsbn(), item.getType());
