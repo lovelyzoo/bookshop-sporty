@@ -1,8 +1,7 @@
 package com.garvin.bookstore.controller;
 
-import com.garvin.bookstore.model.PurchaseItemModel;
 import com.garvin.bookstore.model.PurchaseModel;
-import com.garvin.bookstore.service.BookService;
+import com.garvin.bookstore.model.PurchaseModelResp;
 import com.garvin.bookstore.service.PurchaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +21,9 @@ public class PurchaseController {
     PurchaseService purchaseService;
 
     @GetMapping
-    public String getPrice(@RequestBody PurchaseModel purchaseModel) {
-        logger.info("purchase endpoint called");
+    public PurchaseModelResp getOutcome(@RequestBody PurchaseModel purchaseModel) {
+        logger.info("GET /purchase endpoint called");
 
-        return purchaseService.getPrice(purchaseModel);
+        return purchaseService.getOutcome(purchaseModel);
     }
 }

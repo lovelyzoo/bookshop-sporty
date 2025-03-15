@@ -1,13 +1,14 @@
 package com.garvin.bookstore.service;
 
-import com.garvin.bookstore.controller.PurchaseController;
 import com.garvin.bookstore.db.*;
 import com.garvin.bookstore.model.PurchaseItemModel;
 import com.garvin.bookstore.model.PurchaseModel;
+import com.garvin.bookstore.model.PurchaseModelResp;
 import com.garvin.bookstore.properties.BookTypeProperties;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -147,10 +148,14 @@ public class PurchaseService {
         return calculateOutcomeReturnValue;
     }
 
-    public String getPrice(PurchaseModel purchaseModel) {
+    public PurchaseModelResp getOutcome(PurchaseModel purchaseModel) {
+        PurchaseModelResp returnValue = new PurchaseModelResp();
         CalculateOutcomeReturnValue calculateOutcomeReturnValue = calculateOutcome(purchaseModel);
-        return String.format("Total cost: %s, Loyalty Point balance: %s",
-                String.valueOf(calculateOutcomeReturnValue.getTotalCost()),
-                String.valueOf(calculateOutcomeReturnValue.getLoyaltyPointsBalance()));
+
+        BeanUtils.copyProperties(purchaseModel, returnValue);
+        returnValue.setTotalCost(calculateOutcomeReturnValue.getTotalCost());
+        returnValue.setLoyaltyPointsBalance(calculateOutcomeReturnValue.getLoyaltyPointsBalance());
+
+        return returnValue;
     }
 }
