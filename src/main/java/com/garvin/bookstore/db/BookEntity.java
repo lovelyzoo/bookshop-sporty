@@ -14,7 +14,7 @@ public class BookEntity implements Serializable {
     private static final long serialVersionUID = 933999866115777188L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private long book_id;
 
     private String title;
