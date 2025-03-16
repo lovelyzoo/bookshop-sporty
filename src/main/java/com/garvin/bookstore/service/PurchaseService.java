@@ -9,8 +9,6 @@ import com.garvin.bookstore.properties.LpSchemeProperties;
 import com.garvin.bookstore.utils.BookStock;
 import com.garvin.bookstore.utils.PurchaseStockTracker;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,8 +20,6 @@ import java.util.HashMap;
 
 @Service
 public class PurchaseService {
-
-    private static final Logger logger = LoggerFactory.getLogger(PurchaseService.class);
 
     @Autowired
     BookRepository bookRepository;
@@ -40,8 +36,8 @@ public class PurchaseService {
     @Autowired
     LpSchemeProperties lpSchemeProperties;
 
-    private final HashMap<String, BigDecimal> priceModifier = new HashMap<String, BigDecimal>();
-    private final HashMap<String, BigDecimal> bundleModifier = new HashMap<String, BigDecimal>();
+    private final HashMap<String, BigDecimal> priceModifier = new HashMap<>();
+    private final HashMap<String, BigDecimal> bundleModifier = new HashMap<>();
     private long lpSchemeBookCost = 0L;
     private long lpSchemeBundleThreshold = 0L;
 
@@ -143,7 +139,6 @@ public class PurchaseService {
         BigDecimal totalCost = BigDecimal.ZERO;
 
         // Handle the items that are being paid for
-        HashMap<String, Long> purchaseItems = new HashMap<String, Long>();
         for (PurchaseItemModel item: purchaseModel.getPurchaseItems()) {
             long isbn = item.getIsbn();
             String type = item.getType();
@@ -163,7 +158,6 @@ public class PurchaseService {
         }
 
         // Handle the free items
-        HashMap<String, Long> freeItems = new HashMap<String, Long>();
         for (PurchaseItemModel item: purchaseModel.getFreeItems()) {
             long isbn = item.getIsbn();
             String type = item.getType();
@@ -182,7 +176,7 @@ public class PurchaseService {
 
             loyaltyPointsAdjustment = loyaltyPointsAdjustment - lpSchemeBookCost;
             if (currentLoyaltyPoints + loyaltyPointsAdjustment < 0) {
-                calculateOutcomeReturnValue.setStatus(String.format("Insufficient loyalty points"));
+                calculateOutcomeReturnValue.setStatus("Insufficient loyalty points");
                 return calculateOutcomeReturnValue;
             }
         }
@@ -193,7 +187,7 @@ public class PurchaseService {
         calculateOutcomeReturnValue.setLoyaltyPointsAdjustment(loyaltyPointsAdjustment);
         calculateOutcomeReturnValue.setPurchaseStockTracker(purchaseStockTracker);
         calculateOutcomeReturnValue.setCanComplete(true);
-        calculateOutcomeReturnValue.setStatus(String.format("OK"));
+        calculateOutcomeReturnValue.setStatus("OK");
         return calculateOutcomeReturnValue;
     }
 
@@ -209,7 +203,6 @@ public class PurchaseService {
 
     @Transactional
     private void updateDbWithPurchaseChanges(CalculateOutcomeReturnValue calculateOutcomeReturnValue) {
-        PurchaseStockTracker purchaseStockTracker = calculateOutcomeReturnValue.getPurchaseStockTracker();
         for (BookStock bookStock : calculateOutcomeReturnValue.getPurchaseStockTracker().getBookStocks().values()) {
             inventoryRepository.updateInventoryDecrementStock(bookStock.getQuantity(), bookStock.getBook_id(), bookStock.getType());
         }
