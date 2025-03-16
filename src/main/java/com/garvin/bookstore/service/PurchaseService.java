@@ -51,7 +51,6 @@ public class PurchaseService {
     static class CalculateOutcomeReturnValue {
         private BigDecimal totalCost;
         private long customer_id;
-        private String userId;
         private long loyaltyPointsAdjustment;
         private PurchaseStockTracker purchaseStockTracker;
         private boolean canComplete;
@@ -71,14 +70,6 @@ public class PurchaseService {
 
         public void setCustomer_id(long customer_id) {
             this.customer_id = customer_id;
-        }
-
-        public String getUserId() {
-            return userId;
-        }
-
-        public void setUserId(String userId) {
-            this.userId = userId;
         }
 
         public long getLoyaltyPointsAdjustment() {
@@ -121,13 +112,13 @@ public class PurchaseService {
 
         CustomerEntity customerEntity = customerRepository.findByUserId(purchaseModel.getUserId());
         calculateOutcomeReturnValue.setCustomer_id(customerEntity.getCustomer_id());
-        calculateOutcomeReturnValue.setUserId(customerEntity.getUserId());
+
         long currentLoyaltyPoints = customerEntity.getLoyaltyPoints();
         long loyaltyPointsAdjustment = 0L;
 
         PurchaseStockTracker purchaseStockTracker = new PurchaseStockTracker(bookRepository);
 
-        // Determine the bundle size
+        // Determine the price modifier
         long bundleSize = purchaseModel.getPurchaseItems().stream()
                 .map(PurchaseItemModel::getQuantity)
                 .mapToLong(Long::longValue).sum();
