@@ -214,7 +214,11 @@ public class PurchaseService {
         CalculateOutcomeReturnValue calculateOutcomeReturnValue = calculateOutcome(purchaseModel);
 
         if (calculateOutcomeReturnValue.canComplete) {
-            updateDbWithPurchaseChanges(calculateOutcomeReturnValue);
+            try {
+                updateDbWithPurchaseChanges(calculateOutcomeReturnValue);
+            } catch (Exception e) {
+                calculateOutcomeReturnValue.setStatus("Error on database update, please retry");
+            }
         }
 
         BeanUtils.copyProperties(purchaseModel, returnValue);
