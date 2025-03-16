@@ -1,0 +1,17 @@
+{
+  "userId": "EORIZQA123",
+  "purchaseItems": [
+    {
+      "isbn": "9781324001805",
+      "type": "O",
+      "quantity": "1"
+    },
+    {
+      "isbn": "9781324001805",
+      "type": "O",
+      "quantity": "3"
+    }
+  ],
+  "freeItems": [
+  ]
+}

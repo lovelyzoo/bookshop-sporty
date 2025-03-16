@@ -1,0 +1,27 @@
+{
+  "userId": "IHWO2AVBBG",
+  "purchaseItems": [
+    {
+      "isbn": "9781447273301",
+      "type": "N",
+      "quantity": "1"
+    },
+    {
+      "isbn": "9781324001805",
+      "type": "R",
+      "quantity": "1"
+    },
+    {
+      "isbn": "9781324001805",
+      "type": "O",
+      "quantity": "1"
+    }
+  ],
+  "freeItems": [
+    {
+      "isbn": "9781324001805",
+      "type": "R",
+      "quantity": "1"
+    }
+  ]
+}
