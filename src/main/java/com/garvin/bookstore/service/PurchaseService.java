@@ -148,7 +148,7 @@ public class PurchaseService {
             long quantity = item.getQuantity();
 
             BookEntity bookEntity = bookRepository.findByIsbn(isbn);
-            if (!purchaseStockTracker.incrementItem(isbn, type, quantity)) {
+            if (!purchaseStockTracker.incrementItem(bookEntity, type, quantity)) {
                 calculateOutcomeReturnValue.setStatus(String.format("Insufficient stock of %s %s", isbn, type));
                 return calculateOutcomeReturnValue;
             }
@@ -173,7 +173,7 @@ public class PurchaseService {
             }
 
             BookEntity bookEntity = bookRepository.findByIsbn(isbn);
-            if (!purchaseStockTracker.incrementItem(isbn, type, quantity)) {
+            if (!purchaseStockTracker.incrementItem(bookEntity, type, quantity)) {
                 calculateOutcomeReturnValue.setStatus(String.format("Insufficient stock of %s %s", isbn, type));
                 return calculateOutcomeReturnValue;
             }

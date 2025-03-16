@@ -3,12 +3,17 @@ package com.garvin.bookstore.utils;
 import com.garvin.bookstore.db.BookEntity;
 import com.garvin.bookstore.db.BookRepository;
 import com.garvin.bookstore.db.InventoryEntity;
+import com.garvin.bookstore.service.PurchaseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
 public class PurchaseStockTracker {
+
+    private static final Logger logger = LoggerFactory.getLogger(PurchaseStockTracker.class);
 
     BookRepository bookRepository;
     private HashMap<String, BookStock> bookStocks;
@@ -18,10 +23,16 @@ public class PurchaseStockTracker {
         this.bookStocks = new HashMap<String, BookStock>();
     }
 
-    public boolean incrementItem(long isbn, String type, long quantity) {
+
+    public boolean incrementItem(BookEntity bookEntity, String type, long quantity) {
+        if (bookEntity == null) {
+            logger.warn("bookEntity is null");
+            return false;
+        }
+
+        long isbn = bookEntity.getIsbn();
         String key = String.format("%s %s", isbn, type);
         if (!bookStocks.containsKey(key)) {
-            BookEntity bookEntity = bookRepository.findByIsbn(isbn);
             long stock = getStock(type, bookEntity.getInventory());
             bookStocks.put(key, new BookStock(bookEntity.getBook_id(), type, stock, 0L));
         }
