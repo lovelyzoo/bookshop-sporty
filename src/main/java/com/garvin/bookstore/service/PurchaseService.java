@@ -111,6 +111,10 @@ public class PurchaseService {
         calculateOutcomeReturnValue.setCanComplete(false);
 
         CustomerEntity customerEntity = customerRepository.findByUserId(purchaseModel.getUserId());
+        if (customerEntity == null) {
+            calculateOutcomeReturnValue.setStatus(String.format("Customer %s does not exist", purchaseModel.getUserId()));
+            return calculateOutcomeReturnValue;
+        }
         calculateOutcomeReturnValue.setCustomer_id(customerEntity.getCustomer_id());
 
         long currentLoyaltyPoints = customerEntity.getLoyaltyPoints();
