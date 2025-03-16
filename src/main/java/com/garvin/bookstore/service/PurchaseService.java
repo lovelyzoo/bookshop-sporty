@@ -5,6 +5,7 @@ import com.garvin.bookstore.model.PurchaseItemModel;
 import com.garvin.bookstore.model.PurchaseModel;
 import com.garvin.bookstore.model.PurchaseModelResp;
 import com.garvin.bookstore.properties.BookTypeProperties;
+import com.garvin.bookstore.properties.LpSchemeProperties;
 import com.garvin.bookstore.utils.BookStock;
 import com.garvin.bookstore.utils.PurchaseStockTracker;
 import jakarta.annotation.PostConstruct;
@@ -36,8 +37,13 @@ public class PurchaseService {
     @Autowired
     BookTypeProperties bookTypeProperties;
 
+    @Autowired
+    LpSchemeProperties lpSchemeProperties;
+
     private final HashMap<String, BigDecimal> priceModifier = new HashMap<String, BigDecimal>();
     private final HashMap<String, BigDecimal> bundleModifier = new HashMap<String, BigDecimal>();
+    private long lpSchemeBookCost = 0L;
+    private long lpSchemeBundleThreshold = 0L;
 
     @PostConstruct
     private void postConstruct() {
@@ -46,6 +52,8 @@ public class PurchaseService {
             priceModifier.put(bookType.getType(), bookType.getPricemodifier());
             bundleModifier.put(bookType.getType(), bookType.getBundlemodifier());
         }
+        lpSchemeBookCost = lpSchemeProperties.getBookCost();
+        lpSchemeBundleThreshold = lpSchemeProperties.getBundleThreshold();
     }
 
     static class CalculateOutcomeReturnValue {
@@ -128,7 +136,7 @@ public class PurchaseService {
                 .mapToLong(Long::longValue).sum();
 
         HashMap<String, BigDecimal> modifier = priceModifier;
-        if (bundleSize >= 3) {
+        if (bundleSize >= lpSchemeBundleThreshold) {
             modifier = bundleModifier;
         }
 
@@ -172,7 +180,7 @@ public class PurchaseService {
                 return calculateOutcomeReturnValue;
             }
 
-            loyaltyPointsAdjustment = loyaltyPointsAdjustment - 10;
+            loyaltyPointsAdjustment = loyaltyPointsAdjustment - lpSchemeBookCost;
             if (currentLoyaltyPoints + loyaltyPointsAdjustment < 0) {
                 calculateOutcomeReturnValue.setStatus(String.format("Insufficient loyalty points"));
                 return calculateOutcomeReturnValue;
