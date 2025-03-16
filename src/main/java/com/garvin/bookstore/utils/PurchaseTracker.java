@@ -3,28 +3,26 @@ package com.garvin.bookstore.utils;
 import com.garvin.bookstore.db.BookEntity;
 import com.garvin.bookstore.db.BookRepository;
 import com.garvin.bookstore.db.InventoryEntity;
-import com.garvin.bookstore.service.PurchaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Set;
 
-public class PurchaseStockTracker {
+public class PurchaseTracker {
 
-    private static final Logger logger = LoggerFactory.getLogger(PurchaseStockTracker.class);
+    private static final Logger logger = LoggerFactory.getLogger(PurchaseTracker.class);
 
     BookRepository bookRepository;
-    private HashMap<String, BookStock> bookStocks;
+    private final HashMap<String, BookStock> bookStocks;
 
-    public PurchaseStockTracker(BookRepository bookRepository) {
+    public PurchaseTracker(BookRepository bookRepository) {
         this.bookRepository = bookRepository;
         this.bookStocks = new HashMap<String, BookStock>();
     }
 
 
-    public boolean incrementItem(BookEntity bookEntity, String type, long quantity) {
+    public boolean hasEnoughStock(BookEntity bookEntity, String type, long quantity) {
         if (bookEntity == null) {
             logger.warn("bookEntity is null");
             return false;
@@ -44,9 +42,7 @@ public class PurchaseStockTracker {
     }
 
     private static long getStock(String type, Set<InventoryEntity> inventoryEntities) {
-        Iterator<InventoryEntity> inventoryEntityIterator = inventoryEntities.iterator();
-        while(inventoryEntityIterator.hasNext()){
-            InventoryEntity inventoryEntity = inventoryEntityIterator.next();
+        for (InventoryEntity inventoryEntity : inventoryEntities) {
             if (inventoryEntity.getType().equals(type)) {
                 return inventoryEntity.getStock();
             }

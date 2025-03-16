@@ -7,7 +7,7 @@ import com.garvin.bookstore.model.PurchaseModelResp;
 import com.garvin.bookstore.properties.BookTypeProperties;
 import com.garvin.bookstore.properties.LpSchemeProperties;
 import com.garvin.bookstore.utils.BookStock;
-import com.garvin.bookstore.utils.PurchaseStockTracker;
+import com.garvin.bookstore.utils.PurchaseTracker;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ public class PurchaseService {
         private BigDecimal totalCost;
         private long customer_id;
         private long loyaltyPointsAdjustment;
-        private PurchaseStockTracker purchaseStockTracker;
+        private PurchaseTracker purchaseTracker;
         private boolean canComplete;
         private String status;
 
@@ -84,12 +84,12 @@ public class PurchaseService {
             this.loyaltyPointsAdjustment = loyaltyPointsAdjustment;
         }
 
-        public PurchaseStockTracker getPurchaseStockTracker() {
-            return purchaseStockTracker;
+        public PurchaseTracker getPurchaseStockTracker() {
+            return purchaseTracker;
         }
 
-        public void setPurchaseStockTracker(PurchaseStockTracker purchaseStockTracker) {
-            this.purchaseStockTracker = purchaseStockTracker;
+        public void setPurchaseStockTracker(PurchaseTracker purchaseTracker) {
+            this.purchaseTracker = purchaseTracker;
         }
 
         public boolean isCanComplete() {
@@ -124,7 +124,7 @@ public class PurchaseService {
         long currentLoyaltyPoints = customerEntity.getLoyaltyPoints();
         long loyaltyPointsAdjustment = 0L;
 
-        PurchaseStockTracker purchaseStockTracker = new PurchaseStockTracker(bookRepository);
+        PurchaseTracker purchaseTracker = new PurchaseTracker(bookRepository);
 
         // Determine the price modifier
         long bundleSize = purchaseModel.getPurchaseItems().stream()
@@ -145,7 +145,7 @@ public class PurchaseService {
             long quantity = item.getQuantity();
 
             BookEntity bookEntity = bookRepository.findByIsbn(isbn);
-            if (!purchaseStockTracker.incrementItem(bookEntity, type, quantity)) {
+            if (!purchaseTracker.hasEnoughStock(bookEntity, type, quantity)) {
                 calculateOutcomeReturnValue.setStatus(String.format("Insufficient stock of %s %s", isbn, type));
                 return calculateOutcomeReturnValue;
             }
@@ -169,7 +169,7 @@ public class PurchaseService {
             }
 
             BookEntity bookEntity = bookRepository.findByIsbn(isbn);
-            if (!purchaseStockTracker.incrementItem(bookEntity, type, quantity)) {
+            if (!purchaseTracker.hasEnoughStock(bookEntity, type, quantity)) {
                 calculateOutcomeReturnValue.setStatus(String.format("Insufficient stock of %s %s", isbn, type));
                 return calculateOutcomeReturnValue;
             }
@@ -185,7 +185,7 @@ public class PurchaseService {
         totalCost = totalCost.setScale(2, RoundingMode.UP);
         calculateOutcomeReturnValue.setTotalCost(totalCost);
         calculateOutcomeReturnValue.setLoyaltyPointsAdjustment(loyaltyPointsAdjustment);
-        calculateOutcomeReturnValue.setPurchaseStockTracker(purchaseStockTracker);
+        calculateOutcomeReturnValue.setPurchaseStockTracker(purchaseTracker);
         calculateOutcomeReturnValue.setCanComplete(true);
         calculateOutcomeReturnValue.setStatus("OK");
         return calculateOutcomeReturnValue;
