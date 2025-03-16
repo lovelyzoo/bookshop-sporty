@@ -52,9 +52,9 @@ public class PurchaseService {
         private BigDecimal totalCost;
         private long customer_id;
         private String userId;
-        private long loyaltyPointsBalance;
+        private long loyaltyPointsAdjustment;
         private PurchaseStockTracker purchaseStockTracker;
-        private boolean canCompleteTransaction;
+        private boolean canComplete;
         private String status;
 
         public BigDecimal getTotalCost() {
@@ -81,12 +81,12 @@ public class PurchaseService {
             this.userId = userId;
         }
 
-        public long getLoyaltyPointsBalance() {
-            return loyaltyPointsBalance;
+        public long getLoyaltyPointsAdjustment() {
+            return loyaltyPointsAdjustment;
         }
 
-        public void setLoyaltyPointsBalance(long loyaltyPointsBalance) {
-            this.loyaltyPointsBalance = loyaltyPointsBalance;
+        public void setLoyaltyPointsAdjustment(long loyaltyPointsAdjustment) {
+            this.loyaltyPointsAdjustment = loyaltyPointsAdjustment;
         }
 
         public PurchaseStockTracker getPurchaseStockTracker() {
@@ -97,12 +97,12 @@ public class PurchaseService {
             this.purchaseStockTracker = purchaseStockTracker;
         }
 
-        public boolean isCanCompleteTransaction() {
-            return canCompleteTransaction;
+        public boolean isCanComplete() {
+            return canComplete;
         }
 
-        public void setCanCompleteTransaction(boolean canCompleteTransaction) {
-            this.canCompleteTransaction = canCompleteTransaction;
+        public void setCanComplete(boolean canComplete) {
+            this.canComplete = canComplete;
         }
 
         public String getStatus() {
@@ -117,14 +117,13 @@ public class PurchaseService {
     private CalculateOutcomeReturnValue calculateOutcome(PurchaseModel purchaseModel) {
         // Initialise return value
         CalculateOutcomeReturnValue calculateOutcomeReturnValue = new CalculateOutcomeReturnValue();
+        calculateOutcomeReturnValue.setCanComplete(false);
 
         CustomerEntity customerEntity = customerRepository.findByUserId(purchaseModel.getUserId());
         calculateOutcomeReturnValue.setCustomer_id(customerEntity.getCustomer_id());
         calculateOutcomeReturnValue.setUserId(customerEntity.getUserId());
-        long loyaltyPointsBalance = customerEntity.getLoyaltyPoints();
-        calculateOutcomeReturnValue.setLoyaltyPointsBalance(loyaltyPointsBalance);
-
-        calculateOutcomeReturnValue.setCanCompleteTransaction(false);
+        long currentLoyaltyPoints = customerEntity.getLoyaltyPoints();
+        long loyaltyPointsAdjustment = 0L;
 
         PurchaseStockTracker purchaseStockTracker = new PurchaseStockTracker(bookRepository);
 
@@ -157,7 +156,7 @@ public class PurchaseService {
                     .multiply(modifier.get(type))
                     .multiply(BigDecimal.valueOf(quantity))
             );
-            loyaltyPointsBalance = loyaltyPointsBalance + quantity;
+            loyaltyPointsAdjustment = loyaltyPointsAdjustment + quantity;
         }
 
         // Handle the free items
@@ -178,8 +177,8 @@ public class PurchaseService {
                 return calculateOutcomeReturnValue;
             }
 
-            loyaltyPointsBalance = loyaltyPointsBalance - 10;
-            if (loyaltyPointsBalance < 0) {
+            loyaltyPointsAdjustment = loyaltyPointsAdjustment - 10;
+            if (currentLoyaltyPoints + loyaltyPointsAdjustment < 0) {
                 calculateOutcomeReturnValue.setStatus(String.format("Insufficient loyalty points"));
                 return calculateOutcomeReturnValue;
             }
@@ -188,9 +187,9 @@ public class PurchaseService {
         // Setup return for success
         totalCost = totalCost.setScale(2, RoundingMode.UP);
         calculateOutcomeReturnValue.setTotalCost(totalCost);
-        calculateOutcomeReturnValue.setLoyaltyPointsBalance(loyaltyPointsBalance);
+        calculateOutcomeReturnValue.setLoyaltyPointsAdjustment(loyaltyPointsAdjustment);
         calculateOutcomeReturnValue.setPurchaseStockTracker(purchaseStockTracker);
-        calculateOutcomeReturnValue.setCanCompleteTransaction(true);
+        calculateOutcomeReturnValue.setCanComplete(true);
         calculateOutcomeReturnValue.setStatus(String.format("OK"));
         return calculateOutcomeReturnValue;
     }
@@ -209,24 +208,17 @@ public class PurchaseService {
     private void updateDbWithPurchaseChanges(CalculateOutcomeReturnValue calculateOutcomeReturnValue) {
         PurchaseStockTracker purchaseStockTracker = calculateOutcomeReturnValue.getPurchaseStockTracker();
         for (BookStock bookStock : calculateOutcomeReturnValue.getPurchaseStockTracker().getBookStocks().values()) {
-            InventoryEntity inventoryEntity = new InventoryEntity();
-            inventoryEntity.setBook_id(bookStock.getBook_id());
-            inventoryEntity.setType(bookStock.getType());
-            inventoryEntity.setStock(bookStock.revisedStock());
-            inventoryRepository.updateOrInsert(inventoryEntity);
+            inventoryRepository.updateInventoryDecrementStock(bookStock.getQuantity(), bookStock.getBook_id(), bookStock.getType());
         }
-        CustomerEntity customerEntity = new CustomerEntity();
-        customerEntity.setCustomer_id(calculateOutcomeReturnValue.getCustomer_id());
-        customerEntity.setUserId(calculateOutcomeReturnValue.getUserId());
-        customerEntity.setLoyaltyPoints(calculateOutcomeReturnValue.getLoyaltyPointsBalance());
-        customerRepository.updateOrInsert(customerEntity);
+        customerRepository.updateCustomerIncrementLoyaltyPoints(calculateOutcomeReturnValue.getLoyaltyPointsAdjustment(),
+                calculateOutcomeReturnValue.getCustomer_id());
     }
 
     public PurchaseModelResp makePurchase(PurchaseModel purchaseModel) {
         PurchaseModelResp returnValue = new PurchaseModelResp();
         CalculateOutcomeReturnValue calculateOutcomeReturnValue = calculateOutcome(purchaseModel);
 
-        if (calculateOutcomeReturnValue.canCompleteTransaction) {
+        if (calculateOutcomeReturnValue.canComplete) {
             updateDbWithPurchaseChanges(calculateOutcomeReturnValue);
         }
 

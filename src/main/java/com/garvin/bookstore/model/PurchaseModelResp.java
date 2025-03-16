@@ -1,13 +1,12 @@
 package com.garvin.bookstore.model;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 public class PurchaseModelResp {
     private String userId;
     private BigDecimal totalCost;
-    private long loyaltyPointsBalance;
-    private boolean canCompleteTransaction;
+    private long loyaltyPointsAdjustment;
+    private boolean canComplete;
     private String status;
 
     public String getUserId() {
@@ -19,6 +18,7 @@ public class PurchaseModelResp {
     }
 
     public BigDecimal getTotalCost() {
+
         return totalCost;
     }
 
@@ -26,20 +26,20 @@ public class PurchaseModelResp {
         this.totalCost = totalCost;
     }
 
-    public long getLoyaltyPointsBalance() {
-        return loyaltyPointsBalance;
+    public long getLoyaltyPointsAdjustment() {
+        return loyaltyPointsAdjustment;
     }
 
-    public void setLoyaltyPointsBalance(long loyaltyPointsBalance) {
-        this.loyaltyPointsBalance = loyaltyPointsBalance;
+    public void setLoyaltyPointsAdjustment(long loyaltyPointsAdjustment) {
+        this.loyaltyPointsAdjustment = loyaltyPointsAdjustment;
     }
 
-    public boolean isCanCompleteTransaction() {
-        return canCompleteTransaction;
+    public boolean isCanComplete() {
+        return canComplete;
     }
 
-    public void setCanCompleteTransaction(boolean canCompleteTransaction) {
-        this.canCompleteTransaction = canCompleteTransaction;
+    public void setCanComplete(boolean canComplete) {
+        this.canComplete = canComplete;
     }
 
     public String getStatus() {
