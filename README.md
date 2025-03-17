@@ -108,6 +108,7 @@ $ curl -X GET http://localhost:8080/customers/0E4NJH584C
 
 GET `/customers`:
 ```
+$ curl -X GET http://localhost:8080/customers
 [
   {
     "userId": "S0PPQX6O1U",
@@ -122,20 +123,24 @@ GET `/customers`:
 ```
 
 ### Purchase
-The GET request is offered to allow a user to confirm what the outcome of a purchase will be before attempting the purchase.
+The GET method confirms what the outcome of a purchase will be, i.e., it allows the user to check if the purchase is possible and, if so, what the cost and adjustment to loyalty points will be. The POST method makes the purchase and will entail database changes.
 
-The `purchaseItems` array indicates books that the customer wishes to pay for. The `freeItems` indicates books which the customer wishes to claim using loyalty points. Both arrays have the same format.
+Please also see `manual_tests/README.md` for further examples of request bodies.
 
-Note that both arrays may contain multiple entries for the same `isbn`/`type` pair. The `quantity` will be summed in this case.
+#### Confirm that a purchase can complete
+GET `/purchase`:
+
+Within the request body, the `purchaseItems` array indicates books that the customer wishes to pay for. The `freeItems` indicates books which the customer wishes to claim using loyalty points. Both arrays have the same format.
+
+Note that both arrays may contain multiple entries for the same `isbn`/`type` pair.  When this happens, the `quantity` will be summed over all the entries for the`isbn`/`type` pair.
+```
+$ curl -H "Content-Type: application/json" -X GET --data '{"userId": "EORIZQA123", "purchaseItems": [{"isbn": "9781324001805", "type": "N", "quantity": "2"}], "freeItems": []}' http://localhost:8080/purchase
+```
 
 The response body indicates the cost of the `purchaseItems` in `totalCost` and the change due to the loyalty points in `loyaltyPointsAdjustment`.
 
 The purchase may not be possible due to insufficient stock or loyalty points. `canComplete` is `true` and `status` is `OK` when the purchase is possible. Otherwise  `canComplete` is `false` and `status` contains short message clarifying why this is the case. 
-
-#### Confirm that a purchase can complete
-GET /purchase
 ```
-$ curl -H "Content-Type: application/json" -X GET --data '{"userId": "EORIZQA123", "purchaseItems": [{"isbn": "9781324001805", "type": "N", "quantity": "2"}], "freeItems": []}' http://localhost:8080/purchase
 {
   "userId": "EORIZQA123",
   "totalCost": 40.00,
@@ -146,30 +151,63 @@ $ curl -H "Content-Type: application/json" -X GET --data '{"userId": "EORIZQA123
 ```
 
 #### Make a purchase
-POST /purchase
+POST `/purchase`:
+
+The POST request is exactly the same as the GET request bar the change to the method. The response is identical as well.
 ```
 $ curl -H "Content-Type: application/json" -X POST --data '{"userId": "EORIZQA123", "purchaseItems": [{"isbn": "9781324001805", "type": "N", "quantity": "2"}], "freeItems": []}' http://localhost:8080/purchase
-Output is the same format as the GET request.
 ```
+
+## Database
+
+The application makes use of an H2 database, which has a console at: `http://localhost:8080/h2-console`. The defaults should be fine to connct but here are the relevant values, just in case.
+Driver class: `org.h2.Driver` 
+JDBC URL: `jdbc:h2:mem:testdb`
+User Name: `sa`
+Leave the password blank.
 
 ## Design Decisions
 
-- Spring popular framework, 
-- MVC, well understood paradigm 
-- H2, handy for prototyping
-- discuss db
--- not using ISBN as key
--- distinct table for books v inv, normalisation, prices can be determined from base price of book
--- composite key on inventory
--- user_id field in customer table, security, protect db details from attacker
-- types in config file for convenience, also added other stuff to avoid magic numbers
-- assumptions re: loyalty points
--- 'pay' 10 per free book
--- do not consider free books as part of bundle
+I've written this application using the Spring boot framework with an H2 database. These framework/database 'just work' out of the box and lend themselves to the rapid prototyping required for an exercise such as this.
+
+### Database
+
+The database schema is located at `src/main/resources/schema.sql`. In the same directory resides `data.sql` which populates the database with some entries at application initialisation.
+
+The database has three tables:
+`books` - basic details of a book
+`inventory` - the stock of each book, on a per-type basis
+`customer` - a customer's loyalty points
+
+The separate table for `books` and `inventory` is a normalisation to prevent repetition of the fileds in `books`. Furthermore, this breakdown supports the requirement that a book types modifies the underlying cost, i.e., we can calculate an inventory entry's price by quering the `base_price` of its corresponding `books` entry and applying an appropriate modifier.
+
+Clearly the data in `customer` is distinct from the other two tables.
+
+The primary keys for `books` and `customer` are `book_id` and `customer_id` respectively. The field `isbn` has not been used as the PK for `books` since it is entirely possible that the store will stock books that use an indexing system other than the ISBN.
+
+The `user_id` has not been used as the PK for `customer_id` since it this application is likely to receive customer details from another service. Furthermore, there is a security consideration here in that an attacker can easily guess a sequentially generated PK over an id generated randomly.
+
+Constraints have been added to `inventory` and `customer` to ensure that stock and loyalty points never drop below 0. 
+
+### Configuration
+
+Book types are specified within `src/main/resources/application.properties`. The types could have been stored within a dedicated database table with the advantage that a constraint could ensure the integrity of the `inventory`'s `type` field. However, the current approach allows for convenient type creation/modification.
+
+The loyalty points required to claim a free book and the threshold that determines the size of a bundle have also been added to `application.properties` to avoid a proliferation of magic numbers in code.
+
+### Loyalty Point assumptions
+
+The specification says "When 10 loyalty points are accumulated the customer can get one regular or old edition book for free. Once the discount has been applied the loyalty points go back to 0." I've assumed that this means that a customer spends 10 loyalty points to buy a book, not that a customer with, say, 12 loyalty points, has all their loyalty points reset to zero upon claiming a book.
+
+The specification indicates discounts that apply to books "if bought in a bundle of 3 books and more." I've ssumed that books that are claimed using loyalty points do *not* count towards the size of the bundle.
+
+### Improvements
+A constraint shoud be added to `base_price` to ensure it is at least 0.00
+- float possibility of a dedicated loyalty point class
+
 - discuss purchaseTracker
 -- pulls purchase inventory out of the service
 -- consideration of better key (use tuple instead)
 -- acknowledge looping through list, possible inefficiency
-- float possibility of a dedicated loyalty point class
 - discuss tests
 - disscuss return server internal error
