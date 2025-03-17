@@ -211,3 +211,6 @@ A constraint shoud be added to `base_price` to ensure it is at least 0.00
 -- acknowledge looping through list, possible inefficiency
 - discuss tests
 - disscuss return server internal error
+- discuss not using interface at service level
+
+- deleting non-existent considered successful

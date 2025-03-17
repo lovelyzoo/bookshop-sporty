@@ -14,9 +14,9 @@ public class BookTypeProperties {
     private List<BookType> booktypes = new ArrayList<>();
 
     public static class BookType {
-        String type;
-        BigDecimal pricemodifier;
-        BigDecimal bundlemodifier;
+        private String type;
+        private BigDecimal pricemodifier;
+        private BigDecimal bundlemodifier;
 
         public String getType() {
             return type;
@@ -49,5 +49,14 @@ public class BookTypeProperties {
 
     public void setBooktypes(List<BookType> booktypes) {
         this.booktypes = booktypes;
+    }
+
+    public boolean containsType(String type) {
+        for (BookType bookType : booktypes) {
+            if (type.equals(bookType.getType())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
