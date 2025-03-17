@@ -17,6 +17,10 @@ public interface InventoryRepository extends JpaRepository<InventoryEntity, Inve
             nativeQuery = true)
     int updateInventoryDecrementStock(Long quantity, Long book_id, String type);
 
+    @Query(value = "select count(*) from inventory i, books b where b.isbn = ? and i.book_id = b.book_id",
+            nativeQuery = true)
+    Long countByIsbn(Long isbn);
+
     Optional<InventoryEntity> findById(InventoryEntityPK inventoryEntityPK);
 
 }
