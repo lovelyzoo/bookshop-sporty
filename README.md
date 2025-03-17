@@ -30,8 +30,14 @@ The sequence of commands above will now start the application.
 
 The API has the following endpoints:
 
-GET `/books/{isbn}` - get details of an individual book
-GET `/books` - get details of all books
+GET `/books/{isbn}` - get details and inventory of an individual book
+GET `/books` - get details and inventory of all books
+POST `/books` - add a book
+PUT `/books` - update a book's details
+DELETE `/books/{isbn}` - remove a book
+POST `/inventory/{isbn}` - add inventory to a book
+PUT `/inventory/{isbn}` - update book inventory
+DELETE `/inventory/{isbn}` - remove inventory from a book
 GET `/customers/{userId}` - get the loyalty points for an individual customer
 GET `/customers` - get the loyalty points for all customers
 GET `/purchase` - confirm what the outcome of a purchase will be
@@ -92,6 +98,23 @@ $ curl -X GET http://localhost:8080/books
   },
   ...
 ]
+```
+
+### Add inventory to a book
+```
+$ curl -H "Content-Type: application/json" -X POST --data '{"type": "O", "stock": "3"}' http://localhost:8080/inventory/9780593730249
+{"operationResult":"SUCCESS","operationName":"ADD_INVENTORY"}
+```
+
+### Update inventory for a book
+```
+$ curl -H "Content-Type: application/json" -X PUT --data '{"type": "O", "stock": "2"}' http://localhost:8080/inventory/9780593730249
+```
+
+### Delete inventory for a book
+```
+$ curl -H "Content-Type: application/json" -X DELETE --data '{"type": "O"}' http://localhost:8080/inventory/9780593730249
+{"operationResult":"SUCCESS","operationName":"DELETE_INVENTORY"}
 ```
 
 ### Returning the loyalty points for a customer
