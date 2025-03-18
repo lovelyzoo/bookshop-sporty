@@ -245,9 +245,13 @@ The BookEntity is slightly unusual in that it also includes list elements for In
 
 In order to deliver this project within the deadline, I have not added any dedicated exception handling or a test suite.
 
-###
+### Some comments on calculateOutcome and the PurchaseTracker
 
-The calculateOutcome
+`calculateOutcome` does the majority of work in the PurchaseService. The essential idea is to consider each entry in the `purchaseItems` and `freeItems` arrays in turn and track the implications for cost, loyalty points and stock as we do. While the essential idea is sound, the function as it stands makes an excessive number of database calls. Note that `bookRepository.findByIsbn` is used within both `PurchaseItemModel` loops.
+
+Better would be to total the stock requested within the loops and subsequently make a single call to determine if the inventory can meet the order. However, I had already put a lot of time into this component and I thought it better not to research further. Especially as I do not have a test harness in place.
+
+`BookStock` should also be refactored to use a `book_id`/`type` tuple as a key. I notice dedicated java classes that do this but, again, decided to deliver something that demonstrates the idea, even if the execution is lacking.
 
 ### Configuration
 
@@ -261,16 +265,3 @@ The specification says "When 10 loyalty points are accumulated the customer can 
 
 The specification indicates discounts that apply to books "if bought in a bundle of 3 books and more." I've ssumed that books that are claimed using loyalty points do *not* count towards the size of the bundle.
 
-### Improvements
-A constraint shoud be added to `base_price` to ensure it is at least 0.00
-- float possibility of a dedicated loyalty point class
-
-- discuss purchaseTracker
--- pulls purchase inventory out of the service
--- consideration of better key (use tuple instead)
--- acknowledge looping through list, possible inefficiency
-- discuss tests
-- disscuss return server internal error
-- discuss not using interface at service level
-
-- deleting non-existent considered successful

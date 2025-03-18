@@ -13,11 +13,9 @@ public class PurchaseTracker {
 
     private static final Logger logger = LoggerFactory.getLogger(PurchaseTracker.class);
 
-    BookRepository bookRepository;
     private final HashMap<String, BookStock> bookStocks;
 
-    public PurchaseTracker(BookRepository bookRepository) {
-        this.bookRepository = bookRepository;
+    public PurchaseTracker() {
         this.bookStocks = new HashMap<String, BookStock>();
     }
 

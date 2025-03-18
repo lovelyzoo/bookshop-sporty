@@ -124,7 +124,7 @@ public class PurchaseService {
         long currentLoyaltyPoints = customerEntity.getLoyaltyPoints();
         long loyaltyPointsAdjustment = 0L;
 
-        PurchaseTracker purchaseTracker = new PurchaseTracker(bookRepository);
+        PurchaseTracker purchaseTracker = new PurchaseTracker();
 
         // Determine the price modifier
         long bundleSize = purchaseModel.getPurchaseItems().stream()
