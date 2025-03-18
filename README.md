@@ -33,19 +33,19 @@ The API has the following endpoints:
 GET `/books/{isbn}` - get details and inventory of an individual book
 GET `/books` - get details and inventory of all books
 POST `/books` - add a book
-PUT `/books` - update a book's details
+PUT `/books` - update book details
 DELETE `/books/{isbn}` - remove a book
 POST `/inventory/{isbn}` - add inventory to a book
 PUT `/inventory/{isbn}` - update book inventory
 DELETE `/inventory/{isbn}` - remove inventory from a book
-GET `/customers/{userId}` - get the loyalty points for an individual customer
-GET `/customers` - get the loyalty points for all customers
-GET `/purchase` - confirm what the outcome of a purchase will be
-POST `/purchase` - perform a purchase
+GET `/customers/{userId}` - get loyalty points for an individual customer
+GET `/customers` - get loyalty points for all customers
+GET `/purchase` - determine what the outcome of a purchase will be
+POST `/purchase` - make a purchase
 
 Example requests and notes on the request/response bodies are in the following sections.
 
-### Returning the books available for purchase
+### Get details and inventory of books
 `base_price` is the price of the book before any modifiers for type or bundle size are applied.
 There can be up to 3 entries in the `inventory` array, one for each type. If a type is not present in the array then it is not currently available.
 
@@ -100,24 +100,49 @@ $ curl -X GET http://localhost:8080/books
 ]
 ```
 
+### Add a book
+POST `/books`
+```
+$ curl -H "Content-Type: application/json" -X POST --data '{"title":"Get in the Van","author":"Henry Rollins","isbn":9781880985243,"basePrice":17.00}' http://localhost:8080/books
+{"operationResult":"SUCCESS","operationName":"ADD_BOOK"}
+```
+
+### Update book details
+PUT `/books`
+```
+$ curl -H "Content-Type: application/json" -X PUT --data '{"title":"My diary","author":"Me","isbn":9781880985243,"basePrice":13.00}' http://localhost:8080/books
+{"operationResult":"SUCCESS","operationName":"UPDATE_BOOK"}
+```
+
+### Remove a book
+DELETE `/books/{isbn}`
+```
+$ curl -X DELETE http://localhost:8080/books/9781880985243
+{"operationResult":"SUCCESS","operationName":"DELETE_BOOK"}
+```
+
 ### Add inventory to a book
+POST `/inventory`:
 ```
 $ curl -H "Content-Type: application/json" -X POST --data '{"type": "O", "stock": "3"}' http://localhost:8080/inventory/9780593730249
 {"operationResult":"SUCCESS","operationName":"ADD_INVENTORY"}
 ```
 
 ### Update inventory for a book
+PUT `/inventory`:
 ```
 $ curl -H "Content-Type: application/json" -X PUT --data '{"type": "O", "stock": "2"}' http://localhost:8080/inventory/9780593730249
 ```
 
 ### Delete inventory for a book
+DELETE `/inventory`:
+Note that this method should only be called once all inventory elements have been removed from the book.
 ```
 $ curl -H "Content-Type: application/json" -X DELETE --data '{"type": "O"}' http://localhost:8080/inventory/9780593730249
 {"operationResult":"SUCCESS","operationName":"DELETE_INVENTORY"}
 ```
 
-### Returning the loyalty points for a customer
+### Get customer loyalty points
 
 #### Individual customer
 
@@ -150,7 +175,7 @@ The GET method confirms what the outcome of a purchase will be, i.e., it allows 
 
 Please also see `manual_tests/README.md` for further examples of request bodies.
 
-#### Confirm that a purchase can complete
+#### Determine what the outcome of a purchase will be
 GET `/purchase`:
 
 Within the request body, the `purchaseItems` array indicates books that the customer wishes to pay for. The `freeItems` indicates books which the customer wishes to claim using loyalty points. Both arrays have the same format.
@@ -204,13 +229,25 @@ The database has three tables:
 
 The separate table for `books` and `inventory` is a normalisation to prevent repetition of the fileds in `books`. Furthermore, this breakdown supports the requirement that a book types modifies the underlying cost, i.e., we can calculate an inventory entry's price by quering the `base_price` of its corresponding `books` entry and applying an appropriate modifier.
 
-Clearly the data in `customer` is distinct from the other two tables.
+The data in `customer` is distinct from the other two tables.
 
 The primary keys for `books` and `customer` are `book_id` and `customer_id` respectively. The field `isbn` has not been used as the PK for `books` since it is entirely possible that the store will stock books that use an indexing system other than the ISBN.
 
 The `user_id` has not been used as the PK for `customer_id` since it this application is likely to receive customer details from another service. Furthermore, there is a security consideration here in that an attacker can easily guess a sequentially generated PK over an id generated randomly.
 
 Constraints have been added to `inventory` and `customer` to ensure that stock and loyalty points never drop below 0. 
+
+### Code, big picture
+
+I have followed a conventional code layout for a Spring MVC project. Controller, model and service packages are all present and contain the files you would expect. A properties package imports configuration from `application.properties` and the utils package contains some clasess that are used by the purchase service.
+
+The BookEntity is slightly unusual in that it also includes list elements for Inventory Entities. This simplifies deliver of the GET `/books` api calls but there is a tradeoff in that some dedicated queries were required in the Book and Inventory repositories in order to support POST/PUT/DELETE methods.
+
+In order to deliver this project within the deadline, I have not added any dedicated exception handling or a test suite.
+
+###
+
+The calculateOutcome
 
 ### Configuration
 
