@@ -241,15 +241,15 @@ Constraints have been added to `inventory` and `customer` to ensure that stock a
 
 I have followed a conventional code layout for a Spring MVC project. Controller, model and service packages are all present and contain the files you would expect. A properties package imports configuration from `application.properties` and the utils package contains some clasess that are used by the purchase service.
 
-The BookEntity is slightly unusual in that it also includes list elements for Inventory Entities. This simplifies delivery of the GET `/books` api. I've then added a custom query to get around the fact that ISBN's uniqueness constraint prevents JPA's save method from updating the BookEntity.
+The BookEntity is slightly unusual in that it also includes list elements for Inventory Entities. This simplifies delivery of the GET `/books` api. I've then added a custom query to get around the fact that ISBN's uniqueness constraint prevents JPA's save method from updating the BookEntity
 
 In order to deliver this project within the deadline, I have not added any dedicated exception handling or a test suite.
 
 ### Some comments on calculateOutcome and the PurchaseTracker
 
-`calculateOutcome` does the majority of work in the PurchaseService. The essential idea is to consider each entry in the `purchaseItems` and `freeItems` arrays in turn and track the implications for cost, loyalty points and stock as we do. While the essential idea is sound, the function as it stands makes an excessive number of database calls. Note that `bookRepository.findByIsbn` is used within both `PurchaseItemModel` loops.
+`calculateOutcome` does the majority of work in the PurchaseService. The essential idea is to consider each entry in the `purchaseItems` and `freeItems` arrays in turn and track the implications for cost, loyalty points and stock as we do. The `PurchaseTracker` and `BookStock` classes combine to offer a key/value store that allows me to count the quantity of books ordered compared to those in stock.
 
-Better would be to use the `PurchaseTracker` count the stock requested for the purchase. After this is done, a single could determine if the inventory can meet the order. However, I had already put a lot of time into this component and I thought it better not to research further. Especially as I do not have a test harness in place.
+While the essential idea is sound, the function as it stands makes an excessive number of database calls. Note that `bookRepository.findByIsbn` is used within both `PurchaseItemModel` loops. Better would be to use the `PurchaseTracker` to keep a running total of the quantity ordered. Then, once the entire request has been processed, a single could determine if the inventory can meet the order. However, I had already put a lot of time into this component and I thought it better not to research further. Especially as I do not have a test harness in place.
 
 `BookStock` should also be refactored to use a `book_id`/`type` tuple as a key. I notice dedicated java classes that do this but, again, decided to deliver something that demonstrates the idea, even if the execution is lacking.
 
